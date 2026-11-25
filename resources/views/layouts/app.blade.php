@@ -19,7 +19,7 @@
 <body>
     <nav>
         <a href="/students">Students</a>
-        {{-- Courses link is added in Milestone 4 --}}
+        <a href="/courses">Courses</a>
     </nav>
     <hr>
 

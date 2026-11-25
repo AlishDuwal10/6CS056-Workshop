@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Course;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -74,3 +75,65 @@ Route::delete('/students/{id}', function ($id) {
 
     return redirect('/students')->with('success', 'Student deleted successfully!');
 })->name('students.destroy');
+
+
+// ---------- COURSES ----------
+
+$courseRules = [
+    'name'        => 'required|string|max:255',
+    'description' => 'required|string|max:2000',
+    'duration'    => 'required|integer|min:1|max:520',
+    'fee'         => 'required|numeric|min:0|max:999999.99',
+    'difficulty'  => 'required|in:Easy,Medium,Hard',
+];
+
+// List
+Route::get('/courses', function () {
+    return view('course.list', ['courses' => Course::all()]);
+})->name('courses.index');
+
+// Create form (must come BEFORE /courses/{id})
+Route::get('/courses/create', function () {
+    return view('course.create');
+})->name('courses.create');
+
+// Store
+Route::post('/courses', function (Request $request) use ($courseRules) {
+    $validated = $request->validate($courseRules);
+    $validated['is_active'] = $request->boolean('is_active');  // unchecked checkbox sends nothing
+
+    $course = Course::create($validated);
+
+    return redirect()->route('courses.index')
+        ->with('success', "Course {$course->name} created successfully!");
+})->name('courses.store');
+
+// Detail
+Route::get('/courses/{id}', function ($id) {
+    return view('course.detail', ['course' => Course::findOrFail($id)]);
+})->name('courses.show');
+
+// Edit form
+Route::get('/courses/{id}/edit', function ($id) {
+    return view('course.edit', ['course' => Course::findOrFail($id)]);
+})->name('courses.edit');
+
+// Update
+Route::put('/courses/{id}', function (Request $request, $id) use ($courseRules) {
+    $course = Course::findOrFail($id);
+
+    $validated = $request->validate($courseRules);
+    $validated['is_active'] = $request->boolean('is_active');
+
+    $course->update($validated);
+
+    return redirect('/courses/' . $course->id)
+        ->with('success', 'Course updated successfully!');
+})->name('courses.update');
+
+// Delete
+Route::delete('/courses/{id}', function ($id) {
+    Course::findOrFail($id)->delete();
+
+    return redirect('/courses')->with('success', 'Course deleted successfully!');
+})->name('courses.destroy');
